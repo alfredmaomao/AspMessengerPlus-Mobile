@@ -1,23 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="AspMessengerPlus.Maui.LoginPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="AspMessengerPlus.Maui.LoginPage">
 
-    <VerticalStackLayout Padding="20" Spacing="12">
+    <VerticalStackLayout Padding="30" Spacing="20">
 
-        <Entry Placeholder="Username"
-               Text="{Binding Username}" />
+        <Entry
+            Placeholder="Email"
+            Text="{Binding Email}" />
 
-        <Entry Placeholder="Password"
-               IsPassword="True"
-               Text="{Binding Password}" />
+        <Entry
+            Placeholder="Password"
+            IsPassword="True"
+            Text="{Binding Password}" />
 
-        <Label Text="{Binding Status}"
-               TextColor="Red"
-               IsVisible="{Binding HasStatus}" />
-
-        <Button Text="Login"
-                Command="{Binding LoginCommand}" />
+        <Button
+            Text="Login"
+            Command="{Binding LoginCommand}" />
 
     </VerticalStackLayout>
 </ContentPage>

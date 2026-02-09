@@ -1,75 +1,70 @@
-﻿using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 using AspMessengerPlus.Maui.Services;
+using Microsoft.Maui.Storage;
 
 namespace AspMessengerPlus.Maui.ViewModels;
 
-public class LoginViewModel : INotifyPropertyChanged
+public class LoginViewModel : BindableObject
 {
     private readonly IAuthService _authService;
 
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    private string _username = "";
-    public string Username
+    private string _email = "";
+    public string Email
     {
-        get => _username;
-        set { _username = value; OnPropertyChanged(); }
+        get => _email;
+        set
+        {
+            _email = value;
+            OnPropertyChanged();
+        }
     }
 
     private string _password = "";
     public string Password
     {
         get => _password;
-        set { _password = value; OnPropertyChanged(); }
-    }
-
-    private string _status = "";
-    public string Status
-    {
-        get => _status;
         set
         {
-            _status = value;
+            _password = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(HasStatus));
         }
     }
-
-    public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
 
     public ICommand LoginCommand { get; }
 
     public LoginViewModel(IAuthService authService)
     {
         _authService = authService;
-
-        LoginCommand = new Command(async () => await LoginAsync());
+        LoginCommand = new Command(async () => await Login());
     }
 
-    private async Task LoginAsync()
+    private async Task Login()
     {
-        if (string.IsNullOrWhiteSpace(Username) ||
+        if (string.IsNullOrWhiteSpace(Email) ||
             string.IsNullOrWhiteSpace(Password))
         {
-            Status = "Please enter username and password.";
+            await Shell.Current.DisplayAlert(
+                "Error",
+                "Email and password required",
+                "OK");
             return;
         }
 
-        Status = "";
+        var user = await _authService.LoginAsync(Email, Password);
 
-        var success = await _authService.LoginAsync(Username, Password);
-        if (!success)
+        if (user == null)
         {
-            Status = "Invalid username or password.";
+            await Shell.Current.DisplayAlert(
+                "Login failed",
+                "Invalid credentials",
+                "OK");
             return;
         }
 
-       
-        await Shell.Current.GoToAsync(nameof(ChatPage));
-    }
+        Preferences.Set("user_id", user.UserId);
+        Preferences.Set("username", user.Username);
 
-    private void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        // ✅ 官方推荐的 MAUI 导航方式
+        await Shell.Current.GoToAsync("ChatPage");
+    }
 }

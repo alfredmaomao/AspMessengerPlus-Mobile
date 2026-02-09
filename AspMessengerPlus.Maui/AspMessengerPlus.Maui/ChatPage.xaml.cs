@@ -1,4 +1,5 @@
-﻿using AspMessengerPlus.ViewModels;
+﻿using AspMessengerPlus.Maui.ViewModels;
+using AspMessengerPlus.ViewModels;
 
 namespace AspMessengerPlus.Maui;
 
