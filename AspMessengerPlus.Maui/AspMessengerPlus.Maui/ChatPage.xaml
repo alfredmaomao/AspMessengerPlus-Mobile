@@ -20,28 +20,44 @@
         <CollectionView Grid.Row="1"
                         ItemsSource="{Binding Messages}"
                         SelectionMode="None">
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Frame Padding="10"
-                           CornerRadius="14"
-                           HasShadow="False"
-                           Margin="0,4">
+                    <Frame
+                        Padding="10"
+                        CornerRadius="14"
+                        HasShadow="False"
+                        Margin="0,4"
+                        HorizontalOptions="{Binding IsMine, Converter={StaticResource BoolToAlignment}}"
+                        BackgroundColor="{Binding IsMine, Converter={StaticResource BoolToColor}}">
+
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="{Binding Text}"
-                                   FontSize="15" />
-                            <Label Text="{Binding Timestamp}"
-                                   FontSize="10"
-                                   Opacity="0.6" />
+
+                            <!-- Message text -->
+                            <Label
+                                Text="{Binding Text}"
+                                FontSize="15"
+                                FontAttributes="{Binding IsTyping, Converter={StaticResource TypingFont}}" />
+
+                            <!-- Timestamp -->
+                            <Label
+                                Text="{Binding Timestamp}"
+                                FontSize="10"
+                                Opacity="0.6"
+                                HorizontalOptions="End" />
+
                         </VerticalStackLayout>
                     </Frame>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
+
         </CollectionView>
 
         <!-- Input -->
         <Grid Grid.Row="2"
               ColumnDefinitions="*,Auto"
               ColumnSpacing="10">
+
             <Entry Grid.Column="0"
                    Placeholder="Type a message..."
                    Text="{Binding InputText}"
@@ -51,6 +67,7 @@
             <Button Grid.Column="1"
                     Text="Send"
                     Command="{Binding SendCommand}" />
+
         </Grid>
 
     </Grid>

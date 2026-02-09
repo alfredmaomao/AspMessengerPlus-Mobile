@@ -21,33 +21,26 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // =========================
-        // ✅ HttpClient（非常关键）
-        // =========================
+                                                                         
         builder.Services.AddSingleton(new HttpClient
         {
-            // 🔴 Windows / Android Emulator 用这个
+            
             //BaseAddress = new Uri("https://10.0.2.2:7175/")
 
-            // 👉 如果你现在只在 Windows 跑，可以临时用：
+            
             BaseAddress = new Uri("https://localhost:7175/")
         });
 
-        // =========================
-        // ✅ Services
-        // =========================
+       
         builder.Services.AddSingleton<IAuthService, AuthService>();
-        builder.Services.AddSingleton<IChatService, EchoChatService>();
+        // builder.Services.AddSingleton<IChatService, EchoChatService>();
+        builder.Services.AddSingleton<IChatService, FakeChatService>();
 
-        // =========================
-        // ✅ ViewModels
-        // =========================
+
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<ChatViewModel>();
 
-        // =========================
-        // ✅ Pages
-        // =========================
+   
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ChatPage>();
 

@@ -2,9 +2,12 @@
 <Application
     x:Class="AspMessengerPlus.Maui.App"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:conv="clr-namespace:AspMessengerPlus.Maui.Converters">
 
     <Application.Resources>
-        <!-- 先留空 -->
+        <conv:BoolToAlignmentConverter x:Key="BoolToAlignment" />
+        <conv:BoolToColorConverter x:Key="BoolToColor" />
+        <conv:TypingFontConverter x:Key="TypingFont" />
     </Application.Resources>
 </Application>

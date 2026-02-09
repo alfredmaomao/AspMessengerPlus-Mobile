@@ -5,9 +5,10 @@ namespace AspMessengerPlus.Maui;
 
 public partial class ChatPage : ContentPage
 {
-    public ChatPage(ChatViewModel vm)
+    public ChatPage(ChatViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = vm;
+        BindingContext = viewModel;
     }
 }
+
