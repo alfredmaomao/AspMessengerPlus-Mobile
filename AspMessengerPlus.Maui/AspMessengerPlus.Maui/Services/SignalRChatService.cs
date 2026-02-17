@@ -10,9 +10,6 @@ public class SignalRChatService : IChatService
 
     private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=47";
 
-    // 🔥 这里写死当前登录用户（你现在用 PY）
-    private const string CurrentUserId = "PY";
-
     public event Action<ChatMessage>? MessageReceived;
 
     public async Task ConnectAsync()
@@ -48,15 +45,12 @@ public class SignalRChatService : IChatService
                 MessageReceived?.Invoke(new ChatMessage
                 {
                     Text = message,
-                    // 🔥 关键判断
-                    IsMine = userId == CurrentUserId,
+                    IsMine = false,   // 服务器广播统一灰色
                     Timestamp = createdAt
                 });
             });
 
         await _connection.StartAsync();
-
-        Console.WriteLine("SignalR connected ✅");
     }
 
     public async Task<ChatMessage> SendAsync(string text)
@@ -68,9 +62,7 @@ public class SignalRChatService : IChatService
 
         await _connection!.SendAsync("SendMessage", 47, text);
 
-        // 🔥 不再本地生成 UI 消息
-        // 交给服务器广播回来处理
-
+        // 本地立即显示蓝色气泡
         return new ChatMessage
         {
             Text = text,
