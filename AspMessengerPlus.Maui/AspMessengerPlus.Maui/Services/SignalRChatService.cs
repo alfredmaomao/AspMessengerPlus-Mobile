@@ -8,10 +8,9 @@ public class SignalRChatService : IChatService
 {
     private HubConnection? _connection;
 
-    private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=47";
-
-    // 🔥 这里写死当前登录用户（你现在用 PY）
-    private const string CurrentUserId = "PY";
+    //private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=27";
+    private const string HubUrl =
+    "https://aspmessengerplus-cgccdravd4c2hjb8.canadacentral-01.azurewebsites.net/chatHub?channelId=27";
 
     public event Action<ChatMessage>? MessageReceived;
 
@@ -20,26 +19,32 @@ public class SignalRChatService : IChatService
         if (_connection != null)
             return;
 
-#if ANDROID
-        var handler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
+        //#if ANDROID
+        //        var handler = new HttpClientHandler
+        //        {
+        //            ServerCertificateCustomValidationCallback =
+        //                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        //        };
+
+        //        _connection = new HubConnectionBuilder()
+        //            .WithUrl(HubUrl, options =>
+        //            {
+        //                options.HttpMessageHandlerFactory = _ => handler;
+        //            })
+        //            .WithAutomaticReconnect()
+        //            .Build();
+        //#else
+        //        _connection = new HubConnectionBuilder()
+        //            .WithUrl(HubUrl)
+        //            .WithAutomaticReconnect()
+        //            .Build();
+        //#endif
 
         _connection = new HubConnectionBuilder()
-            .WithUrl(HubUrl, options =>
-            {
-                options.HttpMessageHandlerFactory = _ => handler;
-            })
-            .WithAutomaticReconnect()
-            .Build();
-#else
-        _connection = new HubConnectionBuilder()
-            .WithUrl(HubUrl)
-            .WithAutomaticReconnect()
-            .Build();
-#endif
+    .WithUrl(HubUrl)
+    .WithAutomaticReconnect()
+    .Build();
+
 
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
@@ -48,15 +53,12 @@ public class SignalRChatService : IChatService
                 MessageReceived?.Invoke(new ChatMessage
                 {
                     Text = message,
-                    // 🔥 关键判断
-                    IsMine = userId == CurrentUserId,
+                    IsMine = false,   // 服务器广播统一灰色
                     Timestamp = createdAt
                 });
             });
 
         await _connection.StartAsync();
-
-        Console.WriteLine("SignalR connected ✅");
     }
 
     public async Task<ChatMessage> SendAsync(string text)
@@ -66,11 +68,9 @@ public class SignalRChatService : IChatService
             await ConnectAsync();
         }
 
-        await _connection!.SendAsync("SendMessage", 47, text);
+        await _connection!.SendAsync("SendMessage", 27, text);
 
-        // 🔥 不再本地生成 UI 消息
-        // 交给服务器广播回来处理
-
+        // 本地立即显示蓝色气泡
         return new ChatMessage
         {
             Text = text,

@@ -44,6 +44,9 @@ public class ChatViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    // 🔥 用来记录刚刚自己发的消息
+    private string? _lastSentMessage;
+
     public ChatViewModel(IChatService chatService)
     {
         _chatService = chatService;
@@ -53,13 +56,19 @@ public class ChatViewModel : INotifyPropertyChanged
             () => !IsBusy && !string.IsNullOrWhiteSpace(InputText)
         );
 
-        // 🔥 订阅 SignalR 事件（所有消息统一从服务器来）
         if (_chatService is SignalRChatService signalR)
         {
             signalR.MessageReceived += msg =>
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
+                    // 🔥 如果服务器广播的是刚刚自己发的那条
+                    if (_lastSentMessage != null && msg.Text == _lastSentMessage)
+                    {
+                        msg.IsMine = true;
+                        _lastSentMessage = null;
+                    }
+
                     Messages.Add(msg);
                 });
             };
@@ -75,7 +84,10 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             IsBusy = true;
 
-            // 🔥 只发送，不自己添加
+            // 🔥 记录刚发送的内容
+            _lastSentMessage = text;
+
+            // 🔥 只发送，不本地添加
             await _chatService.SendAsync(text);
 
             InputText = string.Empty;
