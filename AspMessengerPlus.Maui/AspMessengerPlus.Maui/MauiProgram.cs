@@ -53,7 +53,9 @@ public static class MauiProgram
         // Services
         // =========================
         builder.Services.AddSingleton<IAuthService, AuthService>();
-        builder.Services.AddSingleton<IChatService, FakeChatService>();
+
+        // 🔥 这里从 Fake 改为 SignalR
+        builder.Services.AddSingleton<IChatService, SignalRChatService>();
 
         // =========================
         // ViewModels

@@ -5,6 +5,11 @@ namespace AspMessengerPlus.Maui.Services;
 
 public class FakeChatService : IChatService
 {
+    public Task ConnectAsync()
+    {
+        return Task.CompletedTask;
+    }
+
     public async Task<ChatMessage> SendAsync(string text)
     {
         // 模拟网络延迟

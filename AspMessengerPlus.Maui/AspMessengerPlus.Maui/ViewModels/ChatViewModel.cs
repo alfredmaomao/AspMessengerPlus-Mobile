@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using AspMessengerPlus.Models;
 using AspMessengerPlus.Services;
+using Microsoft.Maui.Dispatching;
 
 namespace AspMessengerPlus.ViewModels;
 
@@ -39,21 +40,6 @@ public class ChatViewModel : INotifyPropertyChanged
         }
     }
 
-    private string _statusText = string.Empty;
-    public string StatusText
-    {
-        get => _statusText;
-        set
-        {
-            if (_statusText == value) return;
-            _statusText = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(HasStatus));
-        }
-    }
-
-    public bool HasStatus => !string.IsNullOrWhiteSpace(StatusText);
-
     public ICommand SendCommand { get; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -63,16 +49,21 @@ public class ChatViewModel : INotifyPropertyChanged
         _chatService = chatService;
 
         SendCommand = new Command(
-            execute: async () => await SendAsync(),
-            canExecute: () => !IsBusy && !string.IsNullOrWhiteSpace(InputText)
+            async () => await SendAsync(),
+            () => !IsBusy && !string.IsNullOrWhiteSpace(InputText)
         );
 
-        Messages.Add(new ChatMessage
+        // 🔥 订阅 SignalR 事件（所有消息统一从服务器来）
+        if (_chatService is SignalRChatService signalR)
         {
-            Text = "ChatViewModel connected ✅",
-            IsMine = false,
-            Timestamp = DateTime.Now
-        });
+            signalR.MessageReceived += msg =>
+            {
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    Messages.Add(msg);
+                });
+            };
+        }
     }
 
     private async Task SendAsync()
@@ -83,25 +74,20 @@ public class ChatViewModel : INotifyPropertyChanged
         try
         {
             IsBusy = true;
-            StatusText = string.Empty;
 
-          
-            Messages.Add(new ChatMessage
-            {
-                Text = text,
-                IsMine = true,
-                Timestamp = DateTime.Now
-            });
+            // 🔥 只发送，不自己添加
+            await _chatService.SendAsync(text);
 
             InputText = string.Empty;
-
-            
-            var incoming = await _chatService.SendAsync(text);
-            Messages.Add(incoming);
         }
         catch (Exception ex)
         {
-            StatusText = ex.Message;
+            Messages.Add(new ChatMessage
+            {
+                Text = $"Error: {ex.Message}",
+                IsMine = false,
+                Timestamp = DateTime.Now
+            });
         }
         finally
         {
