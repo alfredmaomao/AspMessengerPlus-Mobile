@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AspMessengerPlus.Maui.ConversationListPage"
+             Title="Conversations">
+
+    <VerticalStackLayout Padding="20" Spacing="15">
+
+        <Button Text="Channel 49"
+                Clicked="OnChannel49Clicked"/>
+
+        <Button Text="Channel 50"
+                Clicked="OnChannel50Clicked"/>
+
+        <Button Text="Channel 88"
+                Clicked="OnChannel88Clicked"/>
+
+    </VerticalStackLayout>
+
+</ContentPage>

@@ -11,9 +11,9 @@
         Route="LoginPage"
         ContentTemplate="{DataTemplate views:LoginPage}" />
 
-    <!-- 聊天页（关键新增） -->
+    <!-- 会话列表页 -->
     <ShellContent
-        Route="ChatPage"
-        ContentTemplate="{DataTemplate views:ChatPage}" />
+        Route="ConversationListPage"
+        ContentTemplate="{DataTemplate views:ConversationListPage}" />
 
 </Shell>

@@ -63,8 +63,7 @@ public class LoginViewModel : BindableObject
 
         Preferences.Set("user_id", user.UserId);
         Preferences.Set("username", user.Username);
+        await Shell.Current.GoToAsync("//ConversationListPage");
 
-        // ✅ 官方推荐的 MAUI 导航方式
-        await Shell.Current.GoToAsync("ChatPage");
     }
 }
