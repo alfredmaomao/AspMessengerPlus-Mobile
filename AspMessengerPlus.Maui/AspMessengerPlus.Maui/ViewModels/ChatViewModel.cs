@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using AspMessengerPlus.Models;
 using AspMessengerPlus.Services;
-using Microsoft.Maui.Dispatching;
 
 namespace AspMessengerPlus.ViewModels;
 
@@ -44,7 +43,6 @@ public class ChatViewModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    // 🔥 用来记录刚刚自己发的消息
     private string? _lastSentMessage;
 
     public ChatViewModel(IChatService chatService)
@@ -62,14 +60,30 @@ public class ChatViewModel : INotifyPropertyChanged
             {
                 MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    // 🔥 如果服务器广播的是刚刚自己发的那条
                     if (_lastSentMessage != null && msg.Text == _lastSentMessage)
                     {
                         msg.IsMine = true;
+                        msg.SenderName = "Me";
+                        msg.Avatar = "tx.jpg";        // 👤 你的头像
+                        msg.IsRead = false;
                         _lastSentMessage = null;
                     }
+                    else
+                    {
+                        msg.IsMine = false;
+
+                        // 保留服务器传来的名字
+                        if (string.IsNullOrWhiteSpace(msg.SenderName))
+                            msg.SenderName = "Unknown";
+
+                        msg.Avatar = "tx2.jpg";
+                    }
+
 
                     Messages.Add(msg);
+
+                    if (msg.IsMine)
+                        SimulateReadStatus(msg);
                 });
             };
         }
@@ -84,27 +98,26 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             IsBusy = true;
 
-            // 🔥 记录刚发送的内容
             _lastSentMessage = text;
 
-            // 🔥 只发送，不本地添加
             await _chatService.SendAsync(text);
 
             InputText = string.Empty;
-        }
-        catch (Exception ex)
-        {
-            Messages.Add(new ChatMessage
-            {
-                Text = $"Error: {ex.Message}",
-                IsMine = false,
-                Timestamp = DateTime.Now
-            });
         }
         finally
         {
             IsBusy = false;
         }
+    }
+
+    private async void SimulateReadStatus(ChatMessage message)
+    {
+        await Task.Delay(1200);
+
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            message.IsRead = true;
+        });
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

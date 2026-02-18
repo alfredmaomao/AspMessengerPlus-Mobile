@@ -9,4 +9,9 @@ public partial class LoginPage : ContentPage
         InitializeComponent();
         BindingContext = vm;
     }
+
+    private async void OnRegisterTapped(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync(nameof(RegisterPage));
+    }
 }

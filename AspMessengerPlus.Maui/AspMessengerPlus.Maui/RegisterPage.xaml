@@ -1,47 +1,42 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="AspMessengerPlus.Maui.LoginPage"
+    x:Class="AspMessengerPlus.Maui.RegisterPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="#0B1220"
-    Title="Login">
+    Title="Register">
 
-    <Grid>
+    <ScrollView>
 
         <VerticalStackLayout
-            Spacing="20"
             Padding="30"
+            Spacing="22"
             VerticalOptions="Center">
 
-            <!-- Logo -->
-            <Label Text="AspMessengerPlus"
+            <!-- Title -->
+            <Label Text="Create Account"
                    TextColor="White"
                    FontSize="26"
                    FontAttributes="Bold"
                    HorizontalOptions="Center"/>
 
-            <Label Text="Welcome back"
-                   TextColor="#9CA3AF"
-                   FontSize="14"
-                   HorizontalOptions="Center"/>
-
             <!-- Email -->
             <Frame BackgroundColor="#1E293B"
                    CornerRadius="14"
-                   Padding="10"
+                   Padding="12"
                    HasShadow="False">
 
                 <Entry Placeholder="Email"
                        Text="{Binding Email}"
+                       Keyboard="Email"
                        TextColor="White"
-                       PlaceholderColor="#9CA3AF"
-                       Keyboard="Email"/>
+                       PlaceholderColor="#9CA3AF"/>
             </Frame>
 
             <!-- Password -->
             <Frame BackgroundColor="#1E293B"
                    CornerRadius="14"
-                   Padding="10"
+                   Padding="12"
                    HasShadow="False">
 
                 <Entry Placeholder="Password"
@@ -51,31 +46,40 @@
                        PlaceholderColor="#9CA3AF"/>
             </Frame>
 
-            <!-- Login Button -->
-            <Button Text="Login"
-                    Command="{Binding LoginCommand}"
+            <!-- Confirm Password -->
+            <Frame BackgroundColor="#1E293B"
+                   CornerRadius="14"
+                   Padding="12"
+                   HasShadow="False">
+
+                <Entry Placeholder="Confirm Password"
+                       Text="{Binding ConfirmPassword}"
+                       IsPassword="True"
+                       TextColor="White"
+                       PlaceholderColor="#9CA3AF"/>
+            </Frame>
+
+            <!-- Register Button -->
+            <Button Text="Register"
+                    Command="{Binding RegisterCommand}"
                     BackgroundColor="#2563EB"
                     TextColor="White"
                     HeightRequest="50"
                     CornerRadius="14"/>
 
-            <!-- Register Link -->
+            <!-- Back to Login -->
             <HorizontalStackLayout HorizontalOptions="Center">
-                <Label Text="Don't have an account?"
+                <Label Text="Already have an account?"
                        TextColor="#9CA3AF"
                        FontSize="13"/>
 
-                <Label Text="  Register"
+                <Label Text="  Login"
                        TextColor="#3B82F6"
                        FontSize="13"
-                       FontAttributes="Bold">
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="OnRegisterTapped"/>
-                    </Label.GestureRecognizers>
-                </Label>
+                       FontAttributes="Bold"/>
             </HorizontalStackLayout>
 
         </VerticalStackLayout>
 
-    </Grid>
+    </ScrollView>
 </ContentPage>

@@ -38,14 +38,20 @@ public class SignalRChatService : IChatService
             .Build();
 #endif
 
+        // 👇 修正：把 userName 赋值给 SenderName
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
             (id, userId, userName, message, createdAt) =>
             {
                 MessageReceived?.Invoke(new ChatMessage
                 {
+                    Id = id.ToString(),
                     Text = message,
-                    IsMine = false,   // 服务器广播统一灰色
+                    IsMine = false,
+                    SenderName = string.IsNullOrWhiteSpace(userName)
+                        ? "Unknown"
+                        : userName,
+                    Avatar = "tx2.jpg", // 对方头像
                     Timestamp = createdAt
                 });
             });
@@ -62,12 +68,16 @@ public class SignalRChatService : IChatService
 
         await _connection!.SendAsync("SendMessage", 47, text);
 
-        // 本地立即显示蓝色气泡
+        // 👇 本地立即显示自己的消息
         return new ChatMessage
         {
+            Id = Guid.NewGuid().ToString(),
             Text = text,
             IsMine = true,
-            Timestamp = DateTime.Now
+            SenderName = "Me",
+            Avatar = "tx.jpg", // 自己头像
+            Timestamp = DateTime.Now,
+            IsRead = false
         };
     }
 }

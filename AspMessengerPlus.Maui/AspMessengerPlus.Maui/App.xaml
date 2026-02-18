@@ -3,11 +3,24 @@
     x:Class="AspMessengerPlus.Maui.App"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:conv="clr-namespace:AspMessengerPlus.Maui.Converters">
+    xmlns:converters="clr-namespace:AspMessengerPlus.Maui.Converters">
 
     <Application.Resources>
-        <conv:BoolToAlignmentConverter x:Key="BoolToAlignment" />
-        <conv:BoolToColorConverter x:Key="BoolToColor" />
-        <conv:TypingFontConverter x:Key="TypingFont" />
+        <ResourceDictionary>
+
+            <!-- 颜色 -->
+            <Color x:Key="PrimaryBlue">#3A6FF7</Color>
+            <Color x:Key="DarkBackground">#0B1220</Color>
+            <Color x:Key="LeftBubble">#1E293B</Color>
+            <Color x:Key="RightBubble">#3A6FF7</Color>
+
+            <!-- Converters -->
+            <converters:BoolToAlignmentConverter x:Key="BoolToAlignment"/>
+            <converters:BoolToColorConverter x:Key="BoolToColor"/>
+            <converters:TypingFontConverter x:Key="TypingFont"/>
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter"/>
+
+        </ResourceDictionary>
     </Application.Resources>
+
 </Application>

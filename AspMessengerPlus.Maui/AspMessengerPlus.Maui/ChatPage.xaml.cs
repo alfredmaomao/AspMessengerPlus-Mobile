@@ -1,5 +1,4 @@
-﻿using AspMessengerPlus.Maui.ViewModels;
-using AspMessengerPlus.ViewModels;
+﻿using AspMessengerPlus.ViewModels;
 
 namespace AspMessengerPlus.Maui;
 
@@ -9,6 +8,21 @@ public partial class ChatPage : ContentPage
     {
         InitializeComponent();
         BindingContext = viewModel;
+
+        viewModel.Messages.CollectionChanged += async (s, e) =>
+        {
+            if (viewModel.Messages.Count == 0)
+                return;
+
+            await Task.Delay(50);
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                MessagesView.ScrollTo(
+                    viewModel.Messages.Count - 1,
+                    position: ScrollToPosition.End,
+                    animate: true);
+            });
+        };
     }
 }
-
