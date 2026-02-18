@@ -1,47 +1,46 @@
-﻿using AspMessengerPlus.Maui.Models;
+﻿using System.Net.Http.Json;
+using Microsoft.Maui.Storage;
+using AspMessengerPlus.Models;
 
-namespace AspMessengerPlus.Maui.Services;
+namespace AspMessengerPlus.Services;
 
 public class MessageService
 {
-    public async Task<Message> GetReplyAsync(string userText)
+    private readonly HttpClient _http;
+
+    public MessageService(HttpClient http)
     {
-      
-        await Task.Delay(1000);
+        _http = http;
+    }
 
-        userText = userText.ToLower();
+    public async Task<List<ChatMessage>> GetMessagesAsync(long channelId)
+    {
+        var result = await _http.GetFromJsonAsync<List<MessageResponse>>(
+            $"/api/messages/{channelId}");
 
-        if (userText.Contains("hi") || userText.Contains("hello"))
+        if (result == null)
+            return new List<ChatMessage>();
+
+        var currentUserId = Preferences.Get("user_id", "");
+
+        return result.Select(m => new ChatMessage
         {
-            return new Message
-            {
-                Text = "Hi 👋 Nice to meet you!",
-                IsMine = false
-            };
-        }
+            Id = m.id.ToString(),
+            Text = m.text,
+            IsMine = m.userId == currentUserId, // 🔥 关键修复
+            SenderName = $"{m.firstName} {m.lastName}",
+            Avatar = m.userId == currentUserId ? "tx.jpg" : "tx2.jpg",
+            Timestamp = m.createdAt
+        }).ToList();
+    }
 
-        if (userText.Contains("how are"))
-        {
-            return new Message
-            {
-                Text = "I'm good 😊 How about you?",
-                IsMine = false
-            };
-        }
-
-        if (userText.Contains("bye"))
-        {
-            return new Message
-            {
-                Text = "Bye 👋 See you next time!",
-                IsMine = false
-            };
-        }
-
-        return new Message
-        {
-            Text = "🤖 I received: " + userText,
-            IsMine = false
-        };
+    private class MessageResponse
+    {
+        public long id { get; set; }
+        public string text { get; set; } = "";
+        public string userId { get; set; } = "";
+        public DateTime createdAt { get; set; }
+        public string firstName { get; set; } = "";
+        public string lastName { get; set; } = "";
     }
 }

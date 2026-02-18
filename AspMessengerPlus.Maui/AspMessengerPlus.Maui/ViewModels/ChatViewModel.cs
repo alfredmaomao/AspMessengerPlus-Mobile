@@ -10,6 +10,7 @@ namespace AspMessengerPlus.ViewModels;
 public class ChatViewModel : INotifyPropertyChanged
 {
     private readonly SignalRChatService _chatService;
+    private readonly MessageService _messageService;
 
     public ObservableCollection<ChatMessage> Messages { get; } = new();
 
@@ -44,10 +45,14 @@ public class ChatViewModel : INotifyPropertyChanged
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private string? _lastSentMessage;
+    private long _currentChannelId;
 
-    public ChatViewModel(SignalRChatService chatService)
+    public ChatViewModel(
+        SignalRChatService chatService,
+        MessageService messageService)
     {
         _chatService = chatService;
+        _messageService = messageService;
 
         SendCommand = new Command(
             async () => await SendAsync(),
@@ -110,10 +115,21 @@ public class ChatViewModel : INotifyPropertyChanged
 
     public async Task SwitchChannelAsync(long newChannelId)
     {
+        _currentChannelId = newChannelId;
+
         Messages.Clear();
 
         try
         {
+            // 🔥 1. 先加载历史消息
+            var history = await _messageService.GetMessagesAsync(newChannelId);
+
+            foreach (var msg in history)
+            {
+                Messages.Add(msg);
+            }
+
+            // 🔥 2. 再连接 SignalR
             await _chatService.SwitchChannelAsync(newChannelId);
         }
         catch

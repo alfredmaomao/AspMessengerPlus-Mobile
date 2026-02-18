@@ -1,28 +1,70 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="AspMessengerPlus.Maui.ConversationListPage"
-             Title="Conversations">
+<ContentPage
+    x:Class="AspMessengerPlus.Maui.ConversationListPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#0B1220"
+    Title="Conversations">
 
     <CollectionView x:Name="ChannelsView"
-                SelectionMode="Single">
+                    SelectionMode="None"
+                    Margin="12">
 
         <CollectionView.ItemTemplate>
             <DataTemplate>
-                <Frame Padding="15"
-                   Margin="5"
-                   BackgroundColor="#1E293B"
-                   CornerRadius="10">
+
+                <Frame Padding="12"
+                       Margin="6"
+                       BackgroundColor="#1E293B"
+                       CornerRadius="16"
+                       HasShadow="False">
 
                     <Frame.GestureRecognizers>
-                        <TapGestureRecognizer
-                        Tapped="OnChannelTapped"/>
+                        <TapGestureRecognizer Tapped="OnChannelTapped"/>
                     </Frame.GestureRecognizers>
 
-                    <Label Text="{Binding Name}"
-                       TextColor="White"
-                       FontSize="18"/>
+                    <Grid ColumnDefinitions="50,*,Auto"
+                          VerticalOptions="Center">
+
+                        <!-- 头像 -->
+                        <Frame WidthRequest="40"
+                               HeightRequest="40"
+                               CornerRadius="20"
+                               BackgroundColor="#2563EB"
+                               VerticalOptions="Center"
+                               HorizontalOptions="Center">
+
+                            <Label Text="{Binding Name, StringFormat='{}{0:0}'}"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+                        </Frame>
+
+                        <!-- 名字 -->
+                        <VerticalStackLayout Grid.Column="1"
+                                             Spacing="2">
+
+                            <Label Text="{Binding Name}"
+                                   TextColor="White"
+                                   FontSize="16"
+                                   FontAttributes="Bold"/>
+
+                            <Label Text="Tap to open chat"
+                                   TextColor="#9CA3AF"
+                                   FontSize="12"/>
+                        </VerticalStackLayout>
+
+                        <!-- 箭头 -->
+                        <Label Grid.Column="2"
+                               Text="›"
+                               TextColor="#9CA3AF"
+                               FontSize="20"
+                               VerticalOptions="Center"/>
+
+                    </Grid>
+
                 </Frame>
+
             </DataTemplate>
         </CollectionView.ItemTemplate>
 

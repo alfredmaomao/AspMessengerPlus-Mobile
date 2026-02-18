@@ -72,6 +72,9 @@ public static class MauiProgram
         // Services
         builder.Services.AddSingleton<ChannelService>();
 
+        builder.Services.AddSingleton<MessageService>();
+
+
         return builder.Build();
     }
 }
