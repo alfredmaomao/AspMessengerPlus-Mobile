@@ -9,7 +9,6 @@ public class SignalRChatService : IChatService
 {
     private HubConnection? _connection;
     private readonly CookieContainer _cookieContainer;
-
     private long _currentChannelId = 49;
 
 #if ANDROID
@@ -19,15 +18,13 @@ public class SignalRChatService : IChatService
 #endif
 
     public event Action<ChatMessage>? MessageReceived;
+    public event Action<string>? UserTypingReceived;
 
     public SignalRChatService(CookieContainer cookieContainer)
     {
         _cookieContainer = cookieContainer;
     }
 
-    // ===============================
-    // 连接（强制 LongPolling）
-    // ===============================
     public async Task ConnectAsync()
     {
         if (_connection != null &&
@@ -55,10 +52,10 @@ public class SignalRChatService : IChatService
         _connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, options =>
             {
-                options.Transports = HttpTransportType.LongPolling; // 🔥 禁用 WebSocket
+                options.Transports = HttpTransportType.LongPolling;
                 options.HttpMessageHandlerFactory = _ => handler;
             })
-            .Build(); // 🔥 不用 AutomaticReconnect
+            .Build();
 
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
@@ -75,15 +72,15 @@ public class SignalRChatService : IChatService
                 });
             });
 
-        // 🔥 加连接超时
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        _connection.On<string>("UserTyping", userName =>
+        {
+            UserTypingReceived?.Invoke(userName);
+        });
 
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
         await _connection.StartAsync(cts.Token);
     }
 
-    // ===============================
-    // 发送
-    // ===============================
     public async Task<ChatMessage> SendAsync(string text)
     {
         if (_connection == null ||
@@ -96,10 +93,7 @@ public class SignalRChatService : IChatService
         {
             await _connection!.SendAsync("SendMessage", _currentChannelId, text);
         }
-        catch
-        {
-            // 防止卡死
-        }
+        catch { }
 
         return new ChatMessage
         {
@@ -113,9 +107,19 @@ public class SignalRChatService : IChatService
         };
     }
 
-    // ===============================
-    // 切换频道
-    // ===============================
+    public async Task SendTypingAsync()
+    {
+        if (_connection == null ||
+            _connection.State != HubConnectionState.Connected)
+            return;
+
+        try
+        {
+            await _connection.SendAsync("Typing", _currentChannelId);
+        }
+        catch { }
+    }
+
     public async Task SwitchChannelAsync(long newChannelId)
     {
         _currentChannelId = newChannelId;

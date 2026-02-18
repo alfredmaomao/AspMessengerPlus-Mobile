@@ -4,8 +4,8 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:converters="clr-namespace:AspMessengerPlus.Maui.Converters"
-    BackgroundColor="#0B1220"
-    Title="Chat">
+    NavigationPage.HasNavigationBar="False"
+    BackgroundColor="#0B1220">
 
     <ContentPage.Resources>
         <ResourceDictionary>
@@ -14,19 +14,38 @@
         </ResourceDictionary>
     </ContentPage.Resources>
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid RowDefinitions="60,*,Auto">
 
-        <!-- 顶部 -->
-        <Grid BackgroundColor="#111C2E" Padding="16">
-            <VerticalStackLayout Spacing="2">
-                <Label Text="AspMessengerPlus"
-                       TextColor="White"
-                       FontSize="18"
-                       FontAttributes="Bold"/>
-                <Label Text="Online"
-                       TextColor="#3B82F6"
-                       FontSize="12"/>
-            </VerticalStackLayout>
+        <!-- iMessage 风格顶部 -->
+        <Grid BackgroundColor="#0B1220"
+              Padding="12,0"
+              HeightRequest="60">
+
+            <HorizontalStackLayout VerticalOptions="Center"
+                                   Spacing="10">
+
+                <Label Text="←"
+                       FontSize="20"
+                       TextColor="White">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnBackTapped"/>
+                    </Label.GestureRecognizers>
+                </Label>
+
+                <VerticalStackLayout Spacing="0">
+
+                    <Label Text="AspMessengerPlus"
+                           TextColor="White"
+                           FontSize="17"
+                           FontAttributes="Bold"/>
+
+                    <Label Text="{Binding TypingText}"
+                        TextColor="#3B82F6"
+                        FontSize="11"/>
+
+                </VerticalStackLayout>
+
+            </HorizontalStackLayout>
         </Grid>
 
         <!-- 消息列表 -->
@@ -35,7 +54,7 @@
             Grid.Row="1"
             ItemsSource="{Binding Messages}"
             SelectionMode="None"
-            Margin="12">
+            Margin="14">
 
             <CollectionView.ItemTemplate>
                 <DataTemplate>
@@ -43,57 +62,63 @@
                     <Grid Padding="6">
 
                         <HorizontalStackLayout
-                HorizontalOptions="{Binding IsMine, Converter={StaticResource BoolToAlignment}}"
-                Spacing="6">
+                            HorizontalOptions="{Binding IsMine, Converter={StaticResource BoolToAlignment}}"
+                            Spacing="8">
 
                             <!-- 左头像 -->
-                            <Image Source="{Binding Avatar}"
-                       WidthRequest="36"
-                       HeightRequest="36"
-                       Aspect="AspectFill"
-                       IsVisible="{Binding IsMine, Converter={StaticResource InverseBoolConverter}}"/>
+                            <Frame Padding="0"
+                                   CornerRadius="18"
+                                   HeightRequest="36"
+                                   WidthRequest="36"
+                                   IsVisible="{Binding IsMine, Converter={StaticResource InverseBoolConverter}}"
+                                   HasShadow="False">
+
+                                <Image Source="{Binding Avatar}"
+                                       Aspect="AspectFill"/>
+                            </Frame>
 
                             <!-- 气泡 -->
-                            <Frame Padding="12"
-                       CornerRadius="20"
-                       HasShadow="False"
-                       MaximumWidthRequest="260"
-                       BackgroundColor="{Binding IsMine, Converter={StaticResource BoolToColor}}">
+                            <Frame Padding="14"
+       CornerRadius="22"
+       HasShadow="True"
+       MaximumWidthRequest="270"
+       BackgroundColor="{Binding IsMine, Converter={StaticResource BoolToColor}}">
 
-                                <VerticalStackLayout Spacing="4">
+                                <VerticalStackLayout Spacing="6">
 
-                                    <Label Text="{Binding SenderName}"
-                               FontSize="12"
-                               TextColor="#9CA3AF"
-                               IsVisible="{Binding IsMine, Converter={StaticResource InverseBoolConverter}}"/>
-
+                                    <!-- 正常消息 -->
                                     <Label Text="{Binding Text}"
-                               TextColor="White"
-                               FontSize="16"
-                               LineBreakMode="WordWrap"/>
+               TextColor="White"
+               FontSize="16"
+               LineBreakMode="WordWrap"
+               IsVisible="{Binding IsTyping, Converter={StaticResource InverseBoolConverter}}"/>
 
-                                    <HorizontalStackLayout HorizontalOptions="End"
-                                               Spacing="4">
+                                    <!-- Typing 动画（三个点） -->
+                                    <HorizontalStackLayout IsVisible="{Binding IsTyping}"
+                               Spacing="6"
+                               HorizontalOptions="Start">
 
-                                        <Label Text="{Binding FormattedTime}"
-                                   FontSize="11"
-                                   TextColor="#D1D5DB"/>
+                                        <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" Color="White"/>
+                                        <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" Color="White"/>
+                                        <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="3" Color="White"/>
 
-                                        <Label Text="{Binding ReadStatus}"
-                                   FontSize="11"
-                                   TextColor="#22C55E"/>
                                     </HorizontalStackLayout>
 
                                 </VerticalStackLayout>
-
                             </Frame>
 
+
                             <!-- 右头像 -->
-                            <Image Source="{Binding Avatar}"
-                       WidthRequest="36"
-                       HeightRequest="36"
-                       Aspect="AspectFill"
-                       IsVisible="{Binding IsMine}"/>
+                            <Frame Padding="0"
+                                   CornerRadius="18"
+                                   HeightRequest="36"
+                                   WidthRequest="36"
+                                   IsVisible="{Binding IsMine}"
+                                   HasShadow="False">
+
+                                <Image Source="{Binding Avatar}"
+                                       Aspect="AspectFill"/>
+                            </Frame>
 
                         </HorizontalStackLayout>
 
@@ -106,31 +131,33 @@
 
         <!-- 输入栏 -->
         <Grid Grid.Row="2"
-              BackgroundColor="#111C2E"
-              Padding="10"
+              BackgroundColor="#0B1220"
+              Padding="12"
               ColumnDefinitions="*,Auto"
-              ColumnSpacing="10">
+              ColumnSpacing="12">
 
-            <Entry
-                Grid.Column="0"
-                Placeholder="Type a message..."
-                Text="{Binding InputText}"
-                BackgroundColor="#1E293B"
-                TextColor="White"
-                PlaceholderColor="#9CA3AF"
-                Keyboard="Chat"
-                HeightRequest="45"/>
+            <Frame Grid.Column="0"
+                   BackgroundColor="#1E293B"
+                   CornerRadius="24"
+                   Padding="10"
+                   HasShadow="False">
 
-            <Button
-                Grid.Column="1"
-                Text="➤"
-                Command="{Binding SendCommand}"
-                WidthRequest="45"
-                HeightRequest="45"
-                CornerRadius="22"
-                BackgroundColor="#2563EB"
-                TextColor="White"/>
+                <Entry Placeholder="Type a message..."
+                       Text="{Binding InputText}"
+                       TextColor="White"
+                       PlaceholderColor="#9CA3AF"
+                       BackgroundColor="Transparent"
+                       Keyboard="Chat"/>
+            </Frame>
 
+            <Button Grid.Column="1"
+                    Text="➤"
+                    Command="{Binding SendCommand}"
+                    WidthRequest="46"
+                    HeightRequest="46"
+                    CornerRadius="23"
+                    BackgroundColor="#2563EB"
+                    TextColor="White"/>
         </Grid>
 
     </Grid>

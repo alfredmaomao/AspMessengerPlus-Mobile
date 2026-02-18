@@ -8,9 +8,11 @@ public partial class App : Application
 
         var nav = new NavigationPage(loginPage)
         {
-            BarBackgroundColor = Color.FromArgb("#0B1220"),
+            BarBackgroundColor = Colors.Transparent,
             BarTextColor = Colors.White
         };
+
+        NavigationPage.SetHasNavigationBar(loginPage, false);
 
         MainPage = nav;
     }

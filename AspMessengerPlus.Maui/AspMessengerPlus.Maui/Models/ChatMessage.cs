@@ -26,6 +26,7 @@ public class ChatMessage : INotifyPropertyChanged
             OnPropertyChanged(nameof(ReadStatus));
         }
     }
+    public bool IsTyping { get; set; }
 
     public string FormattedTime => Timestamp.ToString("HH:mm");
 

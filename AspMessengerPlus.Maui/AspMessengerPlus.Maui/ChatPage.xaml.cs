@@ -40,4 +40,9 @@ public partial class ChatPage : ContentPage
 
         await _viewModel.SwitchChannelAsync(_channelId);
     }
+
+    private async void OnBackTapped(object sender, EventArgs e)
+    {
+        await Navigation.PopAsync();
+    }
 }

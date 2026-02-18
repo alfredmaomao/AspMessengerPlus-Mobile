@@ -24,28 +24,28 @@ public class ChatViewModel : INotifyPropertyChanged
             _inputText = value;
             OnPropertyChanged();
             ((Command)SendCommand).ChangeCanExecute();
+
+            if (!string.IsNullOrWhiteSpace(value))
+                _ = _chatService.SendTypingAsync();
         }
     }
 
-    private bool _isBusy;
-    public bool IsBusy
+    private string _typingText = "Online";
+    public string TypingText
     {
-        get => _isBusy;
+        get => _typingText;
         set
         {
-            if (_isBusy == value) return;
-            _isBusy = value;
+            if (_typingText == value) return;
+            _typingText = value;
             OnPropertyChanged();
-            ((Command)SendCommand).ChangeCanExecute();
         }
     }
 
     public ICommand SendCommand { get; }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private string? _lastSentMessage;
-    private long _currentChannelId;
+    private ChatMessage? _typingBubble;
 
     public ChatViewModel(
         SignalRChatService chatService,
@@ -56,29 +56,54 @@ public class ChatViewModel : INotifyPropertyChanged
 
         SendCommand = new Command(
             async () => await SendAsync(),
-            () => !IsBusy && !string.IsNullOrWhiteSpace(InputText)
+            () => !string.IsNullOrWhiteSpace(InputText)
         );
 
         _chatService.MessageReceived += msg =>
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                if (_lastSentMessage != null && msg.Text == _lastSentMessage)
-                {
-                    _lastSentMessage = null;
-                    return;
-                }
-
-                msg.IsMine = false;
-
-                if (string.IsNullOrWhiteSpace(msg.SenderName))
-                    msg.SenderName = "User";
-
-                msg.Avatar = "tx2.jpg";
-
+                RemoveTypingBubble();
                 Messages.Add(msg);
             });
         };
+
+        _chatService.UserTypingReceived += userName =>
+        {
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                ShowTypingBubble(userName);
+                await Task.Delay(1500);
+                RemoveTypingBubble();
+            });
+        };
+    }
+
+    private void ShowTypingBubble(string userName)
+    {
+        RemoveTypingBubble();
+
+        TypingText = $"{userName} is typing...";
+
+        _typingBubble = new ChatMessage
+        {
+            IsTyping = true,
+            IsMine = false,
+            Avatar = "tx2.jpg"
+        };
+
+        Messages.Add(_typingBubble);
+    }
+
+    private void RemoveTypingBubble()
+    {
+        if (_typingBubble != null)
+        {
+            Messages.Remove(_typingBubble);
+            _typingBubble = null;
+        }
+
+        TypingText = "Online";
     }
 
     private async Task SendAsync()
@@ -86,56 +111,26 @@ public class ChatViewModel : INotifyPropertyChanged
         var text = InputText?.Trim();
         if (string.IsNullOrWhiteSpace(text)) return;
 
-        try
+        Messages.Add(new ChatMessage
         {
-            IsBusy = true;
+            Text = text,
+            IsMine = true,
+            Avatar = "tx.jpg"
+        });
 
-            _lastSentMessage = text;
+        await _chatService.SendAsync(text);
 
-            var localMessage = new ChatMessage
-            {
-                Text = text,
-                SenderName = "Me",
-                IsMine = true,
-                Avatar = "tx.jpg",
-                IsRead = false
-            };
-
-            Messages.Add(localMessage);
-
-            await _chatService.SendAsync(text);
-
-            InputText = string.Empty;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
+        InputText = string.Empty;
     }
 
     public async Task SwitchChannelAsync(long newChannelId)
     {
-        _currentChannelId = newChannelId;
-
         Messages.Clear();
+        var history = await _messageService.GetMessagesAsync(newChannelId);
+        foreach (var msg in history)
+            Messages.Add(msg);
 
-        try
-        {
-            // 🔥 1. 先加载历史消息
-            var history = await _messageService.GetMessagesAsync(newChannelId);
-
-            foreach (var msg in history)
-            {
-                Messages.Add(msg);
-            }
-
-            // 🔥 2. 再连接 SignalR
-            await _chatService.SwitchChannelAsync(newChannelId);
-        }
-        catch
-        {
-            // 防止卡死
-        }
+        await _chatService.SwitchChannelAsync(newChannelId);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
