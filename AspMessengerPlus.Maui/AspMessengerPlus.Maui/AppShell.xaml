@@ -6,14 +6,16 @@
     xmlns:views="clr-namespace:AspMessengerPlus.Maui"
     Shell.FlyoutBehavior="Disabled">
 
-    <!-- 登录页 -->
-    <ShellContent
-        Route="LoginPage"
-        ContentTemplate="{DataTemplate views:LoginPage}" />
+    <FlyoutItem Title="Main">
 
-    <!-- 会话列表页 -->
-    <ShellContent
-        Route="ConversationListPage"
-        ContentTemplate="{DataTemplate views:ConversationListPage}" />
+        <ShellContent
+            Route="LoginPage"
+            ContentTemplate="{DataTemplate views:LoginPage}" />
+
+        <ShellContent
+            Route="ConversationListPage"
+            ContentTemplate="{DataTemplate views:ConversationListPage}" />
+
+    </FlyoutItem>
 
 </Shell>

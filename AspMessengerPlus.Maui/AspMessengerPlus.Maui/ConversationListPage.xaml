@@ -5,20 +5,23 @@
              Title="Conversations">
 
     <CollectionView x:Name="ChannelsView"
-                    SelectionMode="Single"
-                    SelectionChanged="OnChannelSelected">
+                SelectionMode="Single">
 
         <CollectionView.ItemTemplate>
             <DataTemplate>
                 <Frame Padding="15"
-                       Margin="5"
-                       BackgroundColor="#1E293B"
-                       CornerRadius="10">
+                   Margin="5"
+                   BackgroundColor="#1E293B"
+                   CornerRadius="10">
+
+                    <Frame.GestureRecognizers>
+                        <TapGestureRecognizer
+                        Tapped="OnChannelTapped"/>
+                    </Frame.GestureRecognizers>
 
                     <Label Text="{Binding Name}"
-                           TextColor="White"
-                           FontSize="18"/>
-
+                       TextColor="White"
+                       FontSize="18"/>
                 </Frame>
             </DataTemplate>
         </CollectionView.ItemTemplate>

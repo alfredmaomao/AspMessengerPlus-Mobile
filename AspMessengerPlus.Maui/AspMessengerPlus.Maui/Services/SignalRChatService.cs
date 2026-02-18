@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using AspMessengerPlus.Models;
 using System.Net;
+using Microsoft.AspNetCore.Http.Connections;
 
 namespace AspMessengerPlus.Services;
 
@@ -25,7 +26,7 @@ public class SignalRChatService : IChatService
     }
 
     // ===============================
-    // 连接
+    // 连接（强制 LongPolling）
     // ===============================
     public async Task ConnectAsync()
     {
@@ -54,13 +55,10 @@ public class SignalRChatService : IChatService
         _connection = new HubConnectionBuilder()
             .WithUrl(hubUrl, options =>
             {
+                options.Transports = HttpTransportType.LongPolling; // 🔥 禁用 WebSocket
                 options.HttpMessageHandlerFactory = _ => handler;
             })
-            .WithAutomaticReconnect()
-            .Build();
-
-        // 🔥 确保不会重复注册事件
-        _connection.Remove("ReceiveMessage");
+            .Build(); // 🔥 不用 AutomaticReconnect
 
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
@@ -77,11 +75,14 @@ public class SignalRChatService : IChatService
                 });
             });
 
-        await _connection.StartAsync();
+        // 🔥 加连接超时
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        await _connection.StartAsync(cts.Token);
     }
 
     // ===============================
-    // 发送消息
+    // 发送
     // ===============================
     public async Task<ChatMessage> SendAsync(string text)
     {
@@ -91,7 +92,14 @@ public class SignalRChatService : IChatService
             await ConnectAsync();
         }
 
-        await _connection!.SendAsync("SendMessage", _currentChannelId, text);
+        try
+        {
+            await _connection!.SendAsync("SendMessage", _currentChannelId, text);
+        }
+        catch
+        {
+            // 防止卡死
+        }
 
         return new ChatMessage
         {
@@ -110,15 +118,17 @@ public class SignalRChatService : IChatService
     // ===============================
     public async Task SwitchChannelAsync(long newChannelId)
     {
-        if (_currentChannelId == newChannelId)
-            return;
-
         _currentChannelId = newChannelId;
 
         if (_connection != null)
         {
-            await _connection.StopAsync();
-            await _connection.DisposeAsync();
+            try
+            {
+                await _connection.StopAsync();
+                await _connection.DisposeAsync();
+            }
+            catch { }
+
             _connection = null;
         }
 

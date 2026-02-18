@@ -3,7 +3,6 @@ using AspMessengerPlus.Maui.Services;
 using AspMessengerPlus.Maui.ViewModels;
 using AspMessengerPlus.Services;
 using AspMessengerPlus.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Hosting;
 using System.Net;
 
@@ -23,7 +22,6 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // 🔥 全局唯一 CookieContainer
         builder.Services.AddSingleton<CookieContainer>();
 
         builder.Services.AddSingleton(sp =>
@@ -58,18 +56,21 @@ public static class MauiProgram
         });
 
         builder.Services.AddSingleton<IAuthService, AuthService>();
-        builder.Services.AddSingleton<IChatService, SignalRChatService>();
 
+        // SignalR chat
+        builder.Services.AddSingleton<SignalRChatService>();
+        builder.Services.AddSingleton<IChatService>(sp => sp.GetRequiredService<SignalRChatService>());
+
+        // ViewModels
         builder.Services.AddTransient<LoginViewModel>();
-
         builder.Services.AddSingleton<ChatViewModel>();
 
+        // Pages
         builder.Services.AddTransient<LoginPage>();
-        builder.Services.AddTransient<ChatPage>();
         builder.Services.AddTransient<ConversationListPage>();
+
+        // Services
         builder.Services.AddSingleton<ChannelService>();
-
-
 
         return builder.Build();
     }

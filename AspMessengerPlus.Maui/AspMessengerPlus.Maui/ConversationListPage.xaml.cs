@@ -1,5 +1,6 @@
 using AspMessengerPlus.Models;
 using AspMessengerPlus.Services;
+using AspMessengerPlus.ViewModels;
 
 namespace AspMessengerPlus.Maui;
 
@@ -21,12 +22,19 @@ public partial class ConversationListPage : ContentPage
         ChannelsView.ItemsSource = channels;
     }
 
-    private async void OnChannelSelected(object sender, SelectionChangedEventArgs e)
+    private async void OnChannelTapped(object sender, EventArgs e)
     {
-        if (e.CurrentSelection.FirstOrDefault() is ChannelDto channel)
-        {
-            await Shell.Current.GoToAsync(
-                $"{nameof(ChatPage)}?channelId={channel.Id}");
-        }
+        if (sender is not Frame frame)
+            return;
+
+        if (frame.BindingContext is not ChannelDto channel)
+            return;
+
+        var services = Application.Current!.Handler!.MauiContext!.Services;
+        var vm = services.GetRequiredService<ChatViewModel>();
+
+        var chatPage = new ChatPage(vm, channel.Id);
+
+        await Navigation.PushAsync(chatPage);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace AspMessengerPlus.Maui;
+﻿using AspMessengerPlus.Maui;
+
+namespace AspMessengerPlus.Maui;
 
 public partial class AppShell : Shell
 {

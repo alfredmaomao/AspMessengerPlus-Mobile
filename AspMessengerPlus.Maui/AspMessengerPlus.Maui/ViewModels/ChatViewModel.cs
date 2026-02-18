@@ -45,9 +45,9 @@ public class ChatViewModel : INotifyPropertyChanged
 
     private string? _lastSentMessage;
 
-    public ChatViewModel(IChatService chatService)
+    public ChatViewModel(SignalRChatService chatService)
     {
-        _chatService = (SignalRChatService)chatService;
+        _chatService = chatService;
 
         SendCommand = new Command(
             async () => await SendAsync(),
@@ -58,11 +58,10 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
-                // 🔥 如果是我刚发的那条广播回来 → 忽略
                 if (_lastSentMessage != null && msg.Text == _lastSentMessage)
                 {
                     _lastSentMessage = null;
-                    return; // 🚀 阻止重复
+                    return;
                 }
 
                 msg.IsMine = false;
@@ -75,8 +74,6 @@ public class ChatViewModel : INotifyPropertyChanged
                 Messages.Add(msg);
             });
         };
-
-        Task.Run(async () => await _chatService.ConnectAsync());
     }
 
     private async Task SendAsync()
@@ -90,7 +87,6 @@ public class ChatViewModel : INotifyPropertyChanged
 
             _lastSentMessage = text;
 
-            // ✅ 本地立即显示（不会重复）
             var localMessage = new ChatMessage
             {
                 Text = text,
@@ -115,7 +111,15 @@ public class ChatViewModel : INotifyPropertyChanged
     public async Task SwitchChannelAsync(long newChannelId)
     {
         Messages.Clear();
-        await _chatService.SwitchChannelAsync(newChannelId);
+
+        try
+        {
+            await _chatService.SwitchChannelAsync(newChannelId);
+        }
+        catch
+        {
+            // 防止卡死
+        }
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

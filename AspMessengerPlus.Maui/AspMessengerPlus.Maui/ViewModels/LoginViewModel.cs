@@ -1,6 +1,7 @@
-﻿using System.Windows.Input;
-using AspMessengerPlus.Maui.Services;
+﻿using AspMessengerPlus.Maui.Services;
+using AspMessengerPlus.Services;
 using Microsoft.Maui.Storage;
+using System.Windows.Input;
 
 namespace AspMessengerPlus.Maui.ViewModels;
 
@@ -43,7 +44,7 @@ public class LoginViewModel : BindableObject
         if (string.IsNullOrWhiteSpace(Email) ||
             string.IsNullOrWhiteSpace(Password))
         {
-            await Shell.Current.DisplayAlert(
+            await Application.Current!.MainPage!.DisplayAlert(
                 "Error",
                 "Email and password required",
                 "OK");
@@ -54,7 +55,7 @@ public class LoginViewModel : BindableObject
 
         if (user == null)
         {
-            await Shell.Current.DisplayAlert(
+            await Application.Current!.MainPage!.DisplayAlert(
                 "Login failed",
                 "Invalid credentials",
                 "OK");
@@ -63,7 +64,11 @@ public class LoginViewModel : BindableObject
 
         Preferences.Set("user_id", user.UserId);
         Preferences.Set("username", user.Username);
-        await Shell.Current.GoToAsync("//ConversationListPage");
 
+        // ✅ 正确导航方式（不重新创建 MainPage）
+        var services = Application.Current!.Handler!.MauiContext!.Services;
+        var conversationPage = services.GetRequiredService<ConversationListPage>();
+
+        await Application.Current!.MainPage!.Navigation.PushAsync(conversationPage);
     }
 }
