@@ -9,8 +9,8 @@
         <Button Text="Channel 49"
                 Clicked="OnChannel49Clicked"/>
 
-        <Button Text="Channel 50"
-                Clicked="OnChannel50Clicked"/>
+        <Button Text="Channel 27"
+                Clicked="OnChannel27Clicked"/>
 
         <Button Text="Channel 88"
                 Clicked="OnChannel88Clicked"/>

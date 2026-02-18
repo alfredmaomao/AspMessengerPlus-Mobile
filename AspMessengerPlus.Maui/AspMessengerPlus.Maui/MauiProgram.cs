@@ -61,10 +61,13 @@ public static class MauiProgram
         builder.Services.AddSingleton<IChatService, SignalRChatService>();
 
         builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<ChatViewModel>();
+
+        builder.Services.AddSingleton<ChatViewModel>();
 
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ChatPage>();
+        builder.Services.AddTransient<ConversationListPage>();
+
 
         return builder.Build();
     }

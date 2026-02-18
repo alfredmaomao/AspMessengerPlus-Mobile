@@ -98,7 +98,9 @@ public class ChatViewModel : INotifyPropertyChanged
 
             _lastSentMessage = text;
 
-            await _chatService.SendAsync(text);
+            var sentMessage = await _chatService.SendAsync(text);
+            Messages.Add(sentMessage);
+
 
             InputText = string.Empty;
         }

@@ -9,7 +9,7 @@ public class SignalRChatService : IChatService
     private HubConnection? _connection;
     private readonly CookieContainer _cookieContainer;
 
-    private long _currentChannelId = 49; // 默认频道
+    private long _currentChannelId = 49;
 
 #if ANDROID
     private const string BaseHubUrl = "https://10.0.2.2:7175/chatHub";
@@ -24,10 +24,13 @@ public class SignalRChatService : IChatService
         _cookieContainer = cookieContainer;
     }
 
-    // 保持接口不变
+    // ===============================
+    // 连接
+    // ===============================
     public async Task ConnectAsync()
     {
-        if (_connection != null && _connection.State == HubConnectionState.Connected)
+        if (_connection != null &&
+            _connection.State == HubConnectionState.Connected)
             return;
 
 #if ANDROID
@@ -56,6 +59,9 @@ public class SignalRChatService : IChatService
             .WithAutomaticReconnect()
             .Build();
 
+        // 🔥 确保不会重复注册事件
+        _connection.Remove("ReceiveMessage");
+
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
             (id, userId, userName, message, createdAt) =>
@@ -74,10 +80,16 @@ public class SignalRChatService : IChatService
         await _connection.StartAsync();
     }
 
+    // ===============================
+    // 发送消息
+    // ===============================
     public async Task<ChatMessage> SendAsync(string text)
     {
-        if (_connection == null || _connection.State != HubConnectionState.Connected)
+        if (_connection == null ||
+            _connection.State != HubConnectionState.Connected)
+        {
             await ConnectAsync();
+        }
 
         await _connection!.SendAsync("SendMessage", _currentChannelId, text);
 
@@ -93,14 +105,20 @@ public class SignalRChatService : IChatService
         };
     }
 
-    // 🔥 新增：切换频道（不会影响接口）
+    // ===============================
+    // 切换频道
+    // ===============================
     public async Task SwitchChannelAsync(long newChannelId)
     {
+        if (_currentChannelId == newChannelId)
+            return;
+
         _currentChannelId = newChannelId;
 
         if (_connection != null)
         {
             await _connection.StopAsync();
+            await _connection.DisposeAsync();
             _connection = null;
         }
 
