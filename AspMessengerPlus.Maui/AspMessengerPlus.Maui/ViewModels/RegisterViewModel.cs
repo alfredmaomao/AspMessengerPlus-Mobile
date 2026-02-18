@@ -42,10 +42,33 @@ public class RegisterViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(Email) ||
             string.IsNullOrWhiteSpace(Password) ||
-            Password != ConfirmPassword)
+            string.IsNullOrWhiteSpace(ConfirmPassword))
         {
-            await Application.Current!.MainPage!
-                .DisplayAlert("Error", "Invalid input", "OK");
+            await ShowError("All fields are required.");
+            return;
+        }
+
+        if (!Email.Contains("@") || !Email.Contains("."))
+        {
+            await ShowError("Please enter a valid email address.");
+            return;
+        }
+
+        if (Password.Length < 8)
+        {
+            await ShowError("Password must be at least 8 characters.");
+            return;
+        }
+
+        if (!Password.Any(char.IsLetter) || !Password.Any(char.IsDigit))
+        {
+            await ShowError("Password must contain both letters and numbers.");
+            return;
+        }
+
+        if (Password != ConfirmPassword)
+        {
+            await ShowError("Passwords do not match.");
             return;
         }
 
@@ -54,15 +77,20 @@ public class RegisterViewModel : INotifyPropertyChanged
         if (success)
         {
             await Application.Current!.MainPage!
-                .DisplayAlert("Success", "Account created!", "OK");
+                .DisplayAlert("Success", "Account created successfully!", "OK");
 
             await Application.Current!.MainPage!.Navigation.PopAsync();
         }
         else
         {
-            await Application.Current!.MainPage!
-                .DisplayAlert("Error", "Registration failed", "OK");
+            await ShowError("Registration failed. Email may already exist.");
         }
+    }
+
+    private async Task ShowError(string message)
+    {
+        await Application.Current!.MainPage!
+            .DisplayAlert("Error", message, "OK");
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
