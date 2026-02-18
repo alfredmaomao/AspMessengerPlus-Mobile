@@ -1,11 +1,20 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using AspMessengerPlus.Maui.Services;
 
 namespace AspMessengerPlus.Maui.ViewModels;
 
 public class RegisterViewModel : INotifyPropertyChanged
 {
+    private readonly IAuthService _authService;
+
+    public RegisterViewModel(IAuthService authService)
+    {
+        _authService = authService;
+        RegisterCommand = new Command(async () => await RegisterAsync());
+    }
+
     private string _email = string.Empty;
     public string Email
     {
@@ -29,22 +38,31 @@ public class RegisterViewModel : INotifyPropertyChanged
 
     public ICommand RegisterCommand { get; }
 
-    public RegisterViewModel()
+    private async Task RegisterAsync()
     {
-        RegisterCommand = new Command(async () =>
+        if (string.IsNullOrWhiteSpace(Email) ||
+            string.IsNullOrWhiteSpace(Password) ||
+            Password != ConfirmPassword)
         {
-            if (string.IsNullOrWhiteSpace(Email) ||
-                string.IsNullOrWhiteSpace(Password) ||
-                Password != ConfirmPassword)
-            {
-                await Application.Current!.MainPage!
-                    .DisplayAlert("Error", "Invalid input", "OK");
-                return;
-            }
+            await Application.Current!.MainPage!
+                .DisplayAlert("Error", "Invalid input", "OK");
+            return;
+        }
 
+        var success = await _authService.RegisterAsync(Email, Password);
+
+        if (success)
+        {
             await Application.Current!.MainPage!
                 .DisplayAlert("Success", "Account created!", "OK");
-        });
+
+            await Application.Current!.MainPage!.Navigation.PopAsync();
+        }
+        else
+        {
+            await Application.Current!.MainPage!
+                .DisplayAlert("Error", "Registration failed", "OK");
+        }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

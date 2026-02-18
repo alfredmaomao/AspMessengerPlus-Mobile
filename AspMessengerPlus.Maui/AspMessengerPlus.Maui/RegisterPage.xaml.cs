@@ -1,10 +1,12 @@
+using AspMessengerPlus.Maui.ViewModels;
+
 namespace AspMessengerPlus.Maui;
 
 public partial class RegisterPage : ContentPage
 {
-    public RegisterPage()
+    public RegisterPage(RegisterViewModel vm)
     {
         InitializeComponent();
-        BindingContext = new ViewModels.RegisterViewModel();
+        BindingContext = vm;
     }
 }

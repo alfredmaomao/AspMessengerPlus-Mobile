@@ -12,6 +12,9 @@ public partial class LoginPage : ContentPage
 
     private async void OnRegisterTapped(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync(nameof(RegisterPage));
+        var services = Application.Current!.Handler!.MauiContext!.Services;
+        var registerPage = services.GetRequiredService<RegisterPage>();
+
+        await Application.Current!.MainPage!.Navigation.PushAsync(registerPage);
     }
 }

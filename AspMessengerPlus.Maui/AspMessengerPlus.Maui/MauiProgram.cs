@@ -49,11 +49,15 @@ public static class MauiProgram
         // ViewModels
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddSingleton<ChatViewModel>();
-
+        builder.Services.AddTransient<LoginViewModel>();
+        builder.Services.AddTransient<RegisterViewModel>();
+        builder.Services.AddSingleton<ChatViewModel>();
         // Pages
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ConversationListPage>();
-
+        builder.Services.AddTransient<LoginPage>();
+        builder.Services.AddTransient<RegisterPage>();
+        builder.Services.AddTransient<ConversationListPage>();
         // Services
         builder.Services.AddSingleton<ChannelService>();
         builder.Services.AddSingleton<MessageService>();
