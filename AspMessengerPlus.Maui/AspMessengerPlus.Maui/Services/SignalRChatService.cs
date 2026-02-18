@@ -11,11 +11,9 @@ public class SignalRChatService : IChatService
     private readonly CookieContainer _cookieContainer;
     private long _currentChannelId = 49;
 
-#if ANDROID
-    private const string BaseHubUrl = "https://10.0.2.2:7175/chatHub";
-#else
-    private const string BaseHubUrl = "https://localhost:7175/chatHub";
-#endif
+    // ✅ Updated to Azure Hub URL
+    private const string BaseHubUrl =
+        "https://aspmessengerplus-cgccdravd4c2hjb8.canadacentral-01.azurewebsites.net/chatHub";
 
     public event Action<ChatMessage>? MessageReceived;
     public event Action<string>? UserTypingReceived;

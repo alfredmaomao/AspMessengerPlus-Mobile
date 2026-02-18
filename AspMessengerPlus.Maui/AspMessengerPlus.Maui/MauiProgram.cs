@@ -28,20 +28,6 @@ public static class MauiProgram
         {
             var cookies = sp.GetRequiredService<CookieContainer>();
 
-#if ANDROID
-            var handler = new HttpClientHandler
-            {
-                UseCookies = true,
-                CookieContainer = cookies,
-                ServerCertificateCustomValidationCallback =
-                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-
-            return new HttpClient(handler)
-            {
-                BaseAddress = new Uri("https://10.0.2.2:7175/")
-            };
-#else
             var handler = new HttpClientHandler
             {
                 UseCookies = true,
@@ -50,9 +36,8 @@ public static class MauiProgram
 
             return new HttpClient(handler)
             {
-                BaseAddress = new Uri("https://localhost:7175/")
+                BaseAddress = new Uri("https://aspmessengerplus-cgccdravd4c2hjb8.canadacentral-01.azurewebsites.net/")
             };
-#endif
         });
 
         builder.Services.AddSingleton<IAuthService, AuthService>();
@@ -71,9 +56,7 @@ public static class MauiProgram
 
         // Services
         builder.Services.AddSingleton<ChannelService>();
-
         builder.Services.AddSingleton<MessageService>();
-
 
         return builder.Build();
     }
