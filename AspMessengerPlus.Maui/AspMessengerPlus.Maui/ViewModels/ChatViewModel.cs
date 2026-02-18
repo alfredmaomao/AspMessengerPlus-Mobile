@@ -47,6 +47,10 @@ public class ChatViewModel : INotifyPropertyChanged
 
     private ChatMessage? _typingBubble;
 
+    // ⭐ 用于防止回声
+    private string? _lastSentText;
+    private DateTime _lastSentTime;
+
     public ChatViewModel(
         SignalRChatService chatService,
         MessageService messageService)
@@ -64,6 +68,14 @@ public class ChatViewModel : INotifyPropertyChanged
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 RemoveTypingBubble();
+
+                // ⭐ 防回声逻辑
+                if (_lastSentText == msg.Text &&
+                    (DateTime.UtcNow - _lastSentTime).TotalSeconds < 3)
+                {
+                    return;
+                }
+
                 Messages.Add(msg);
             });
         };
@@ -111,6 +123,11 @@ public class ChatViewModel : INotifyPropertyChanged
         var text = InputText?.Trim();
         if (string.IsNullOrWhiteSpace(text)) return;
 
+        // 记录发送内容和时间（用于防回声）
+        _lastSentText = text;
+        _lastSentTime = DateTime.UtcNow;
+
+        // 本地立即显示
         Messages.Add(new ChatMessage
         {
             Text = text,
@@ -126,7 +143,9 @@ public class ChatViewModel : INotifyPropertyChanged
     public async Task SwitchChannelAsync(long newChannelId)
     {
         Messages.Clear();
+
         var history = await _messageService.GetMessagesAsync(newChannelId);
+
         foreach (var msg in history)
             Messages.Add(msg);
 

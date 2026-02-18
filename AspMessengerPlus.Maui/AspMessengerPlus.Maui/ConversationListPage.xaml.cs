@@ -18,8 +18,15 @@ public partial class ConversationListPage : ContentPage
     {
         base.OnAppearing();
 
-        var channels = await _channelService.GetChannelsAsync();
-        ChannelsView.ItemsSource = channels;
+        try
+        {
+            var channels = await _channelService.GetChannelsAsync();
+            ChannelsView.ItemsSource = channels;
+        }
+        catch
+        {
+            await DisplayAlert("Error", "Failed to load conversations.", "OK");
+        }
     }
 
     private async void OnChannelTapped(object sender, EventArgs e)
@@ -30,11 +37,23 @@ public partial class ConversationListPage : ContentPage
         if (frame.BindingContext is not ChannelDto channel)
             return;
 
-        var services = Application.Current!.Handler!.MauiContext!.Services;
-        var vm = services.GetRequiredService<ChatViewModel>();
+        var services = Application.Current?.Handler?.MauiContext?.Services;
+        if (services == null)
+            return;
 
+        var vm = services.GetRequiredService<ChatViewModel>();
         var chatPage = new ChatPage(vm, channel.Id);
 
         await Navigation.PushAsync(chatPage);
+    }
+
+    private async void OnNewChatClicked(object sender, EventArgs e)
+    {
+        var services = Application.Current?.Handler?.MauiContext?.Services;
+        if (services == null)
+            return;
+
+        var page = services.GetRequiredService<NewChatPage>();
+        await Navigation.PushAsync(page);
     }
 }
