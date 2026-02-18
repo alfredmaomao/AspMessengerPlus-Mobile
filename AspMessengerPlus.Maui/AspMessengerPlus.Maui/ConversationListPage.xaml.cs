@@ -1,37 +1,32 @@
-using AspMessengerPlus.ViewModels;
+using AspMessengerPlus.Models;
+using AspMessengerPlus.Services;
 
 namespace AspMessengerPlus.Maui;
 
 public partial class ConversationListPage : ContentPage
 {
-    private readonly ChatViewModel _viewModel;
+    private readonly ChannelService _channelService;
 
-    public ConversationListPage(ChatViewModel viewModel)
+    public ConversationListPage(ChannelService channelService)
     {
         InitializeComponent();
-        _viewModel = viewModel;
+        _channelService = channelService;
     }
 
-    private async void OnChannel49Clicked(object sender, EventArgs e)
+    protected override async void OnAppearing()
     {
-        await NavigateToChannel(49);
+        base.OnAppearing();
+
+        var channels = await _channelService.GetChannelsAsync();
+        ChannelsView.ItemsSource = channels;
     }
 
-    private async void OnChannel27Clicked(object sender, EventArgs e)
+    private async void OnChannelSelected(object sender, SelectionChangedEventArgs e)
     {
-        await NavigateToChannel(27);
-    }
-
-    private async void OnChannel88Clicked(object sender, EventArgs e)
-    {
-        await NavigateToChannel(88);
-    }
-
-    private async Task NavigateToChannel(long channelId)
-    {
-        await _viewModel.SwitchChannelAsync(channelId);
-
-        await Shell.Current.Navigation.PushAsync(
-            new ChatPage(_viewModel));
+        if (e.CurrentSelection.FirstOrDefault() is ChannelDto channel)
+        {
+            await Shell.Current.GoToAsync(
+                $"{nameof(ChatPage)}?channelId={channel.Id}");
+        }
     }
 }

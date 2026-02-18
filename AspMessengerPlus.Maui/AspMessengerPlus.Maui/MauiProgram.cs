@@ -67,6 +67,8 @@ public static class MauiProgram
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ChatPage>();
         builder.Services.AddTransient<ConversationListPage>();
+        builder.Services.AddSingleton<ChannelService>();
+
 
 
         return builder.Build();

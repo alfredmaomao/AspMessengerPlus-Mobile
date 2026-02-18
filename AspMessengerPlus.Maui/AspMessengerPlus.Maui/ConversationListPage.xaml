@@ -4,17 +4,25 @@
              x:Class="AspMessengerPlus.Maui.ConversationListPage"
              Title="Conversations">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
+    <CollectionView x:Name="ChannelsView"
+                    SelectionMode="Single"
+                    SelectionChanged="OnChannelSelected">
 
-        <Button Text="Channel 49"
-                Clicked="OnChannel49Clicked"/>
+        <CollectionView.ItemTemplate>
+            <DataTemplate>
+                <Frame Padding="15"
+                       Margin="5"
+                       BackgroundColor="#1E293B"
+                       CornerRadius="10">
 
-        <Button Text="Channel 27"
-                Clicked="OnChannel27Clicked"/>
+                    <Label Text="{Binding Name}"
+                           TextColor="White"
+                           FontSize="18"/>
 
-        <Button Text="Channel 88"
-                Clicked="OnChannel88Clicked"/>
+                </Frame>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
 
-    </VerticalStackLayout>
+    </CollectionView>
 
 </ContentPage>
