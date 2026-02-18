@@ -9,7 +9,7 @@ namespace AspMessengerPlus.ViewModels;
 
 public class ChatViewModel : INotifyPropertyChanged
 {
-    private readonly IChatService _chatService;
+    private readonly SignalRChatService _chatService;
 
     public ObservableCollection<ChatMessage> Messages { get; } = new();
 
@@ -47,46 +47,44 @@ public class ChatViewModel : INotifyPropertyChanged
 
     public ChatViewModel(IChatService chatService)
     {
-        _chatService = chatService;
+        _chatService = (SignalRChatService)chatService;
 
         SendCommand = new Command(
             async () => await SendAsync(),
             () => !IsBusy && !string.IsNullOrWhiteSpace(InputText)
         );
 
-        if (_chatService is SignalRChatService signalR)
+        _chatService.MessageReceived += msg =>
         {
-            signalR.MessageReceived += msg =>
+            MainThread.BeginInvokeOnMainThread(() =>
             {
-                MainThread.BeginInvokeOnMainThread(() =>
+                if (_lastSentMessage != null && msg.Text == _lastSentMessage)
                 {
-                    if (_lastSentMessage != null && msg.Text == _lastSentMessage)
-                    {
-                        msg.IsMine = true;
-                        msg.SenderName = "Me";
-                        msg.Avatar = "tx.jpg";        // 👤 你的头像
-                        msg.IsRead = false;
-                        _lastSentMessage = null;
-                    }
-                    else
-                    {
-                        msg.IsMine = false;
+                    msg.IsMine = true;
+                    msg.SenderName = "Me";
+                    msg.Avatar = "tx.jpg";
+                    msg.IsRead = false;
+                    _lastSentMessage = null;
+                }
+                else
+                {
+                    msg.IsMine = false;
 
-                        // 保留服务器传来的名字
-                        if (string.IsNullOrWhiteSpace(msg.SenderName))
-                            msg.SenderName = "Unknown";
+                    if (string.IsNullOrWhiteSpace(msg.SenderName))
+                        msg.SenderName = "Unknown";
 
-                        msg.Avatar = "tx2.jpg";
-                    }
+                    msg.Avatar = "tx2.jpg";
+                }
 
+                Messages.Add(msg);
 
-                    Messages.Add(msg);
+                if (msg.IsMine)
+                    SimulateReadStatus(msg);
+            });
+        };
 
-                    if (msg.IsMine)
-                        SimulateReadStatus(msg);
-                });
-            };
-        }
+        // 🔥 启动默认连接 49
+        Task.Run(async () => await _chatService.ConnectAsync());
     }
 
     private async Task SendAsync()
@@ -118,6 +116,13 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             message.IsRead = true;
         });
+    }
+
+    // 🔥 外部调用切频道
+    public async Task SwitchChannelAsync(long newChannelId)
+    {
+        Messages.Clear();
+        await _chatService.SwitchChannelAsync(newChannelId);
     }
 
     protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)

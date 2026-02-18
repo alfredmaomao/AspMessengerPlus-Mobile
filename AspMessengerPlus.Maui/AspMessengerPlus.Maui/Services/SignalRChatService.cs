@@ -9,10 +9,12 @@ public class SignalRChatService : IChatService
     private HubConnection? _connection;
     private readonly CookieContainer _cookieContainer;
 
+    private long _currentChannelId = 49; // 默认频道
+
 #if ANDROID
-    private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=49";
+    private const string BaseHubUrl = "https://10.0.2.2:7175/chatHub";
 #else
-    private const string HubUrl = "https://localhost:7175/chatHub?channelId=49";
+    private const string BaseHubUrl = "https://localhost:7175/chatHub";
 #endif
 
     public event Action<ChatMessage>? MessageReceived;
@@ -22,9 +24,10 @@ public class SignalRChatService : IChatService
         _cookieContainer = cookieContainer;
     }
 
+    // 保持接口不变
     public async Task ConnectAsync()
     {
-        if (_connection != null)
+        if (_connection != null && _connection.State == HubConnectionState.Connected)
             return;
 
 #if ANDROID
@@ -43,8 +46,10 @@ public class SignalRChatService : IChatService
         };
 #endif
 
+        var hubUrl = $"{BaseHubUrl}?channelId={_currentChannelId}";
+
         _connection = new HubConnectionBuilder()
-            .WithUrl(HubUrl, options =>
+            .WithUrl(hubUrl, options =>
             {
                 options.HttpMessageHandlerFactory = _ => handler;
             })
@@ -74,7 +79,7 @@ public class SignalRChatService : IChatService
         if (_connection == null || _connection.State != HubConnectionState.Connected)
             await ConnectAsync();
 
-        await _connection!.SendAsync("SendMessage", 49, text);
+        await _connection!.SendAsync("SendMessage", _currentChannelId, text);
 
         return new ChatMessage
         {
@@ -86,5 +91,19 @@ public class SignalRChatService : IChatService
             Timestamp = DateTime.Now,
             IsRead = false
         };
+    }
+
+    // 🔥 新增：切换频道（不会影响接口）
+    public async Task SwitchChannelAsync(long newChannelId)
+    {
+        _currentChannelId = newChannelId;
+
+        if (_connection != null)
+        {
+            await _connection.StopAsync();
+            _connection = null;
+        }
+
+        await ConnectAsync();
     }
 }
