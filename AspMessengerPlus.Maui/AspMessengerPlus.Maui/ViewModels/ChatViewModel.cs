@@ -58,32 +58,24 @@ public class ChatViewModel : INotifyPropertyChanged
         {
             MainThread.BeginInvokeOnMainThread(() =>
             {
+                // 🔥 如果是我刚发的那条广播回来 → 忽略
                 if (_lastSentMessage != null && msg.Text == _lastSentMessage)
                 {
-                    msg.IsMine = true;
-                    msg.SenderName = "Me";
-                    msg.Avatar = "tx.jpg";
-                    msg.IsRead = false;
                     _lastSentMessage = null;
+                    return; // 🚀 阻止重复
                 }
-                else
-                {
-                    msg.IsMine = false;
 
-                    if (string.IsNullOrWhiteSpace(msg.SenderName))
-                        msg.SenderName = "Unknown";
+                msg.IsMine = false;
 
-                    msg.Avatar = "tx2.jpg";
-                }
+                if (string.IsNullOrWhiteSpace(msg.SenderName))
+                    msg.SenderName = "User";
+
+                msg.Avatar = "tx2.jpg";
 
                 Messages.Add(msg);
-
-                if (msg.IsMine)
-                    SimulateReadStatus(msg);
             });
         };
 
-        // 🔥 启动默认连接 49
         Task.Run(async () => await _chatService.ConnectAsync());
     }
 
@@ -98,9 +90,19 @@ public class ChatViewModel : INotifyPropertyChanged
 
             _lastSentMessage = text;
 
-            var sentMessage = await _chatService.SendAsync(text);
-            Messages.Add(sentMessage);
+            // ✅ 本地立即显示（不会重复）
+            var localMessage = new ChatMessage
+            {
+                Text = text,
+                SenderName = "Me",
+                IsMine = true,
+                Avatar = "tx.jpg",
+                IsRead = false
+            };
 
+            Messages.Add(localMessage);
+
+            await _chatService.SendAsync(text);
 
             InputText = string.Empty;
         }
@@ -110,17 +112,6 @@ public class ChatViewModel : INotifyPropertyChanged
         }
     }
 
-    private async void SimulateReadStatus(ChatMessage message)
-    {
-        await Task.Delay(1200);
-
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            message.IsRead = true;
-        });
-    }
-
-    // 🔥 外部调用切频道
     public async Task SwitchChannelAsync(long newChannelId)
     {
         Messages.Clear();

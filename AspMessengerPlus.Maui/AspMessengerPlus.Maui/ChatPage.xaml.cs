@@ -9,12 +9,10 @@ public partial class ChatPage : ContentPage
         InitializeComponent();
         BindingContext = viewModel;
 
-        viewModel.Messages.CollectionChanged += async (s, e) =>
+        viewModel.Messages.CollectionChanged += (s, e) =>
         {
             if (viewModel.Messages.Count == 0)
                 return;
-
-            await Task.Delay(50);
 
             MainThread.BeginInvokeOnMainThread(() =>
             {
