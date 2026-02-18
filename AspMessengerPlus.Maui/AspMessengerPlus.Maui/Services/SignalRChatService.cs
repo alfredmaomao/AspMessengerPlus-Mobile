@@ -1,16 +1,26 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using AspMessengerPlus.Models;
-using System.Net.Http;
+using System.Net;
 
 namespace AspMessengerPlus.Services;
 
 public class SignalRChatService : IChatService
 {
     private HubConnection? _connection;
+    private readonly CookieContainer _cookieContainer;
 
-    private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=47";
+#if ANDROID
+    private const string HubUrl = "https://10.0.2.2:7175/chatHub?channelId=49";
+#else
+    private const string HubUrl = "https://localhost:7175/chatHub?channelId=49";
+#endif
 
     public event Action<ChatMessage>? MessageReceived;
+
+    public SignalRChatService(CookieContainer cookieContainer)
+    {
+        _cookieContainer = cookieContainer;
+    }
 
     public async Task ConnectAsync()
     {
@@ -20,9 +30,18 @@ public class SignalRChatService : IChatService
 #if ANDROID
         var handler = new HttpClientHandler
         {
+            UseCookies = true,
+            CookieContainer = _cookieContainer,
             ServerCertificateCustomValidationCallback =
                 HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
         };
+#else
+        var handler = new HttpClientHandler
+        {
+            UseCookies = true,
+            CookieContainer = _cookieContainer
+        };
+#endif
 
         _connection = new HubConnectionBuilder()
             .WithUrl(HubUrl, options =>
@@ -31,14 +50,7 @@ public class SignalRChatService : IChatService
             })
             .WithAutomaticReconnect()
             .Build();
-#else
-        _connection = new HubConnectionBuilder()
-            .WithUrl(HubUrl)
-            .WithAutomaticReconnect()
-            .Build();
-#endif
 
-        // 👇 修正：把 userName 赋值给 SenderName
         _connection.On<long, string, string, string, DateTime>(
             "ReceiveMessage",
             (id, userId, userName, message, createdAt) =>
@@ -48,10 +60,8 @@ public class SignalRChatService : IChatService
                     Id = id.ToString(),
                     Text = message,
                     IsMine = false,
-                    SenderName = string.IsNullOrWhiteSpace(userName)
-                        ? "Unknown"
-                        : userName,
-                    Avatar = "tx2.jpg", // 对方头像
+                    SenderName = userName,
+                    Avatar = "tx2.jpg",
                     Timestamp = createdAt
                 });
             });
@@ -62,20 +72,17 @@ public class SignalRChatService : IChatService
     public async Task<ChatMessage> SendAsync(string text)
     {
         if (_connection == null || _connection.State != HubConnectionState.Connected)
-        {
             await ConnectAsync();
-        }
 
-        await _connection!.SendAsync("SendMessage", 47, text);
+        await _connection!.SendAsync("SendMessage", 49, text);
 
-        // 👇 本地立即显示自己的消息
         return new ChatMessage
         {
             Id = Guid.NewGuid().ToString(),
             Text = text,
             IsMine = true,
             SenderName = "Me",
-            Avatar = "tx.jpg", // 自己头像
+            Avatar = "tx.jpg",
             Timestamp = DateTime.Now,
             IsRead = false
         };

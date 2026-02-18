@@ -5,7 +5,7 @@ using AspMessengerPlus.Services;
 using AspMessengerPlus.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Hosting;
-using System.Net.Http;
+using System.Net;
 
 namespace AspMessengerPlus;
 
@@ -23,15 +23,18 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
-        // =========================
-        // HttpClient（Android 不炸版）
-        // =========================
+        // 🔥 全局唯一 CookieContainer
+        builder.Services.AddSingleton<CookieContainer>();
+
         builder.Services.AddSingleton(sp =>
         {
+            var cookies = sp.GetRequiredService<CookieContainer>();
+
 #if ANDROID
-            // Android：忽略 HTTPS 自签名证书（开发期必需）
             var handler = new HttpClientHandler
             {
+                UseCookies = true,
+                CookieContainer = cookies,
                 ServerCertificateCustomValidationCallback =
                     HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
             };
@@ -41,31 +44,25 @@ public static class MauiProgram
                 BaseAddress = new Uri("https://10.0.2.2:7175/")
             };
 #else
-            // Windows / 其他平台
-            return new HttpClient
+            var handler = new HttpClientHandler
+            {
+                UseCookies = true,
+                CookieContainer = cookies
+            };
+
+            return new HttpClient(handler)
             {
                 BaseAddress = new Uri("https://localhost:7175/")
             };
 #endif
         });
 
-        // =========================
-        // Services
-        // =========================
         builder.Services.AddSingleton<IAuthService, AuthService>();
-
-        // 🔥 这里从 Fake 改为 SignalR
         builder.Services.AddSingleton<IChatService, SignalRChatService>();
 
-        // =========================
-        // ViewModels
-        // =========================
         builder.Services.AddTransient<LoginViewModel>();
         builder.Services.AddTransient<ChatViewModel>();
 
-        // =========================
-        // Pages
-        // =========================
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<ChatPage>();
 
